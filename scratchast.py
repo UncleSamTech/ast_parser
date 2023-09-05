@@ -17,7 +17,6 @@ class scratchast:
     def get_line_count(self,file_name,target_word):
         line_no = 0
         target_word_list = []
-        actual_line = 0
         if file_name is None or target_word is None:
             return None
         with open(file_name,'r') as open_file:
