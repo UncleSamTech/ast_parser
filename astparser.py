@@ -54,21 +54,35 @@ class astparser:
             #print(self.ast_dict)
             print('json_value')
 
-    def dissect_blocks(self,json_val):
-        main_val = None
-        if json_val is None:
-            return None
-        else:
-            if isinstance(json_val,dict) and bool(json_val):
-                main_val = json_val['targets']
-                print(main_val)
-        #return main_val
+    def dissect_targets(self,json_val):
+        return json_val['targets'] if isinstance(json_val,dict) and bool(json_val) else None
+    
+    def dissect_target_values(self, target_value):
+        if isinstance(target_value,list) and len(target_value) > 0:
+            for each_content in target_value:
+                print(each_content)
+        #return target_value[0:] if isinstance(target_value,list) and len(target_value) > 0 else []
+
+    def get_top_keys(self,json_val):
+        return json_val.keys() if isinstance(json_val,dict) and bool(json_val) else []
+
+    def get_top_values(self,json_val):
+        return json_val.values() if isinstance(json_val,dict) and bool(json_val) else []
+
+
 
     def read_file(self,file_name):
         self.parsed_value = self.sb3class.unpack_sb3(file_name)
         self.json_data = json.loads(self.parsed_value)
-        val = self.dissect_blocks(self.json_data)
-        print(val)
+        val = self.dissect_targets(self.json_data)
+        keys = self.get_top_keys(self.json_data)
+        values = self.get_top_values(self.json_data)
+        target_values = self.dissect_target_values(self.dissect_targets(self.json_data))
+        #print(keys)
+        print(target_values)
+        #print(values)
+
+   
 
 astparser_class = astparser()
 astparser_class.read_file("files/simple.sb3")
