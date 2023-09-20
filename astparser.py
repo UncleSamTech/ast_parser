@@ -1,6 +1,7 @@
 from scratchast import scratchast
 from sb3unzipper import sb3unzipper
 import json
+from TreeClass import TreeClasser
 import collections
 
 class astparser:
@@ -57,6 +58,7 @@ class astparser:
     def dissect_targets(self,json_val):
         return json_val['targets'] if isinstance(json_val,dict) and bool(json_val) else None
     
+    
     def dissect_target_values(self, target_value):
         if isinstance(target_value,list) and len(target_value) > 0:
             for each_content in target_value:
@@ -68,22 +70,45 @@ class astparser:
 
     def get_top_values(self,json_val):
         return json_val.values() if isinstance(json_val,dict) and bool(json_val) else []
+    
 
 
+    def create_simple_tree(self,json_val):
+        tree_list = []
+        if "targets" in self.get_top_keys(json_val):
+            targ_cont = json_val["targets"]
+            print(targ_cont)
+            if isinstance(targ_cont,list) and len(targ_cont) > 0:
+                for each_targ_cont  in targ_cont:
+                    if isinstance(each_targ_cont,dict) and bool(each_targ_cont):
+                        for key,value in each_targ_cont.items():
+                           if isinstance(value,str) or isinstance(value,int) or isinstance(value,bool) or value == None or value == "":
+                               print("targets=>",key,"<=",value)
+                           else:
+                               self.create_simple_tree(value)
+                    #print("targets",each_targ_cont)
+        return tree_list
+        #for i in tree_list:
+
+        
 
     def read_file(self,file_name):
         self.parsed_value = self.sb3class.unpack_sb3(file_name)
         self.json_data = json.loads(self.parsed_value)
         val = self.dissect_targets(self.json_data)
         keys = self.get_top_keys(self.json_data)
-        values = self.get_top_values(self.json_data)
-        target_values = self.dissect_target_values(self.dissect_targets(self.json_data))
+        #values = self.get_top_values(self.json_data)
+        #target_values = self.dissect_target_values(self.dissect_targets(self.json_data))
+        simp_tree = self.create_simple_tree(self.json_data)
         #print(keys)
-        print(target_values)
+        #print(target_values)
+        #print(simp_tree)
         #print(values)
 
    
 
 astparser_class = astparser()
-astparser_class.read_file("files/simple.sb3")
+tr_clas = TreeClasser("numbers")
+tr_clas.setup_tree([2,3,4,5,6,7,7,3])
+#astparser_class.read_file("files/simple.sb3")
 #astparser_class.dissect_blocks("files/sam.sb3")
