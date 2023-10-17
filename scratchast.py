@@ -15,7 +15,9 @@ class scratchast:
         return self.value
 
     
+    
     def get_target_word_datatype(self,target_word):
+
         if target_word is None:
             return "Unknown"
         else:
