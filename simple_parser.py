@@ -48,27 +48,34 @@ class simple_parser:
     
     def get_any_node_id_from_block(self,block):
         return [value['next'] for value in block if isinstance(value,dict) and bool(value)  and 'next' in value.keys() and value['next'] != None]
-        
-    #def get_next_block_by_id(self,blocks_values,id):
-     
+    
+    def get_opcode_from_block(self,block):
+        return [block['opcode'] if isinstance(block,dict) and bool(block) and 'opcode' in block.keys() else None][0]
+    
+    def return_all_opcode(self,blocks_values):
+        return [sub_block['opcode'] for each_block in blocks_values for sub_block in each_block.values() if isinstance(each_block,dict) and bool(each_block) and isinstance(sub_block,dict) and bool(sub_block) and 'opcode' in sub_block.keys()]
+    
+    
+    def join_opcode_and_block_id(self,blocks_values):
+        return [{sub_block['opcode'],sub_block_key} for each_block in blocks_values for sub_block_key,sub_block in each_block.items() if isinstance(each_block,dict) and bool(each_block) and isinstance(sub_block,dict) and bool(sub_block)]
+
     def get_simple_tree(self,blocks_values):
             parent_node = self.get_parent_node(blocks_values)
             
             #ommit opcode and shadow keys
             next_block_afer_parent = {k:v for k,v in parent_node[0].items() if k not in self.ommited_block_keys_parent}
-            print('parent_block',next_block_afer_parent)
-            next_node_id_after_parent = self.get_next_node_id(parent_node)
-            any_succeding_block = self.get_any_block_by_id(blocks_values,next_node_id_after_parent[0])
-            print('next_block_after_parent',any_succeding_block)            
-            subs_node_id = self.get_any_node_id_from_block(any_succeding_block)
-            print('1subs_node_id',subs_node_id)
-            self.blocks_tree = {parent_node[0]['opcode']:next_block_afer_parent}
-            #while(subs_node_id != None):
-                #self.blocks_tree.update({k:v for k,v in any_succeding_block[0].items() if k not in self.ommited_block_keys_parent})
-                ##any_succeding_block = self.get_any_block_by_id(blocks_values,subs_node_id)
-                #print('cont anyblock',any_succeding_block) 
-                #subs_node_id = self.get_any_node_id_from_block(any_succeding_block)
-                #print(subs_node_id)
+            
+            self.blocks_tree = {self.get_opcode_from_block(parent_node[0]):next_block_afer_parent}
+           
+            
+            i = 0
+            while(i <= self.return_all_opcode(blocks_values)):
+                i += 1
+                self.blocks_tree = {self.get_opcode_from_block(parent_node[0]):next_block_afer_parent}
+                parent_node = self.get_parent_node(blocks_values)
+                
+            
+            
 
             return self.blocks_tree
                        
@@ -86,9 +93,11 @@ class simple_parser:
             self.all_targets_value = self.get_all_targets(self.blocs_json)
             self.blocks_values = self.get_all_blocks_values(self.all_targets_value)
             
+            print('all opcode',self.return_all_opcode(self.blocks_values))
+            print('opcode_block_id',self.join_opcode_and_block_id(self.blocks_values))
             #print(self.get_parent_node(self.blocks_values)[0])
             #print(self.get_next_node_id(self.get_parent_node(self.blocks_values))[0])
-            print(self.get_simple_tree(self.blocks_values))
+            #print(self.get_simple_tree(self.blocks_values))
            # print(self.get_all_block_keys(self.blocks_values))
             #print(self.get_any_block_by_id(self.blocks_values,'1UL=3GeJ?mT{5;Vugp|2'))
         else:
