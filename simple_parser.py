@@ -12,8 +12,23 @@ class simple_parser:
         self.blocks_tree = {}
         self.blocks_keys = []
         self.json_data_keys = None
+        self.scratch_tree = {}
 
     ommited_block_keys_parent = {"opcode"}
+
+    tree_depth_check = {'a':{'b':{'Message':['hello','2']},'c':'10','d':['how are you','3'],'e':{'cond':['x',5],'think':['x','20']}}}
+    #print(tree_depth_check)
+
+    def check_depth_tree(self,tree_dict):
+        
+        if isinstance(tree_dict,dict) and bool(tree_dict): 
+            for key,value in tree_dict.items():
+               if isinstance(value,str) or isinstance(value,int) or isinstance(value,bool):
+                   print(key,'=>',value)
+               else:
+                   print(self.check_depth_tree(value))
+
+    
     
     def get_all_targets(self,json_data):
         if isinstance(json_data,dict) and bool(json_data):
@@ -38,8 +53,13 @@ class simple_parser:
         return [v[key] for v in blocks_values if key.strip('') in v.keys()]
     
     def get_any_block_by_id(self,blocks_values,key):
-        return [v[key] for v in blocks_values  if isinstance(v,dict) and bool(v) and key in v.keys()]
+        return [v[key] for v in blocks_values if isinstance(v,dict) and bool(v)]
     
+    def get_block_without_opcode(self,block_values,key):
+        
+        retr_block = self.get_any_block_by_id(block_values,key)
+        return {k2:v2 for v in retr_block  for k2,v2 in v.items() if isinstance(v,dict) and bool(v) and k2 not in self.ommited_block_keys_parent}
+
     def get_all_block_keys(self,blocks_values):
         return [v.keys() for v in blocks_values if isinstance(v,dict) and bool(v)]
     
@@ -57,34 +77,30 @@ class simple_parser:
     
     
     def join_opcode_and_block_id(self,blocks_values):
-        return [{sub_block['opcode'],sub_block_key} for each_block in blocks_values for sub_block_key,sub_block in each_block.items() if isinstance(each_block,dict) and bool(each_block) and isinstance(sub_block,dict) and bool(sub_block)]
+        return [{sub_block['opcode']:sub_block_key} for each_block in blocks_values for sub_block_key,sub_block in each_block.items() if isinstance(each_block,dict) and bool(each_block) and isinstance(sub_block,dict) and bool(sub_block)]
 
-    def get_simple_tree(self,blocks_values):
-            parent_node = self.get_parent_node(blocks_values)
-            
-            #ommit opcode and shadow keys
-            next_block_afer_parent = {k:v for k,v in parent_node[0].items() if k not in self.ommited_block_keys_parent}
-            
-            self.blocks_tree = {self.get_opcode_from_block(parent_node[0]):next_block_afer_parent}
-           
-            
-            i = 0
-            while(i <= self.return_all_opcode(blocks_values)):
-                i += 1
-                self.blocks_tree = {self.get_opcode_from_block(parent_node[0]):next_block_afer_parent}
-                parent_node = self.get_parent_node(blocks_values)
-                
-            
-            
-
-            return self.blocks_tree
-                       
+    
+    def get_all_bl_id(self,block_values):
+        return [sub_block_key for each_block in block_values for sub_block_key,sub_block in each_block.items() if isinstance(each_block,dict) and bool(each_block) and isinstance(sub_block,dict) and bool(sub_block)]             
                          
                     
-                       
-                           
-            
+    def create_second_level_tree_line(self,opcode_id_list,blocks_values):
+        return {k:self.get_block_without_opcode(blocks_values,v)  for opc_id in opcode_id_list[1:] if isinstance(opc_id,dict) and bool(opc_id) for k,v in opc_id.items()}
+    
+  
+                
+    def get_all_block_values(self,block_id_list,blocks_values):
+        return [self.get_block_without_opcode(blocks_values,block) for block in block_id_list[1:] if isinstance(block_id_list,list) and len(block_id_list) > 0]
 
+    def merge_parent_tree(self,opcode_list,second_level_tree):
+        return {opcode_list[0]:second_level_tree}
+
+
+    def assign_val_to_sec_lev_tree(self,opcode_list,all_block_values):
+        new_dict = {}
+        sec_tree = self.create_second_level_tree_line(opcode_list)
+        
+        return sec_tree
     
     def read_files(self, parsed_file):
         if os.path.exists(parsed_file):
@@ -93,13 +109,13 @@ class simple_parser:
             self.all_targets_value = self.get_all_targets(self.blocs_json)
             self.blocks_values = self.get_all_blocks_values(self.all_targets_value)
             
-            print('all opcode',self.return_all_opcode(self.blocks_values))
-            print('opcode_block_id',self.join_opcode_and_block_id(self.blocks_values))
-            #print(self.get_parent_node(self.blocks_values)[0])
-            #print(self.get_next_node_id(self.get_parent_node(self.blocks_values))[0])
-            #print(self.get_simple_tree(self.blocks_values))
-           # print(self.get_all_block_keys(self.blocks_values))
-            #print(self.get_any_block_by_id(self.blocks_values,'1UL=3GeJ?mT{5;Vugp|2'))
+            all_opcode = self.return_all_opcode(self.blocks_values)
+            
+            #print(self.blocks_values)
+            sec_tr = self.create_second_level_tree_line(self.join_opcode_and_block_id(self.blocks_values),self.blocks_values)
+            par = self.merge_parent_tree(all_opcode,sec_tr)
+            print(par)
+        
         else:
             print("File not found")
 
