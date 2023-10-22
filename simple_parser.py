@@ -87,13 +87,26 @@ class simple_parser:
     def create_second_level_tree_line(self,opcode_id_list,blocks_values):
         return {k:self.get_block_without_opcode(blocks_values,v)  for opc_id in opcode_id_list[1:] if isinstance(opc_id,dict) and bool(opc_id) for k,v in opc_id.items()}
     
-  
+    def create_tree_with_lines(self,opcode_id_list,blocks_values,parent):
+        if isinstance(opcode_id_list,list) and len(opcode_id_list):
+            print(f'|---{parent}')
+            for each_opcode in opcode_id_list[1:]:
+                if isinstance(each_opcode,dict) and bool(each_opcode):
+                    
+                    for k,v in each_opcode.items():
+                        print(f'|')
+                        print(f'  |---{k}')
+                        print(f'    |---{self.get_block_without_opcode(blocks_values,v)}')
                 
     def get_all_block_values(self,block_id_list,blocks_values):
         return [self.get_block_without_opcode(blocks_values,block) for block in block_id_list[1:] if isinstance(block_id_list,list) and len(block_id_list) > 0]
 
     def merge_parent_tree(self,opcode_list,second_level_tree):
-        return {opcode_list[0]:second_level_tree}
+        compl_tree = {opcode_list[0]:second_level_tree}
+        print(f'|---{opcode_list[0]}')
+        print(f'    |---{second_level_tree}')
+        json_val = json.dumps(compl_tree)
+        return json_val
 
 
     def assign_val_to_sec_lev_tree(self,opcode_list,all_block_values):
@@ -110,11 +123,11 @@ class simple_parser:
             self.blocks_values = self.get_all_blocks_values(self.all_targets_value)
             
             all_opcode = self.return_all_opcode(self.blocks_values)
-            
-            #print(self.blocks_values)
+            tr_line = self.create_tree_with_lines(self.join_opcode_and_block_id(self.blocks_values),self.blocks_values,all_opcode[0])
+            print(tr_line)
             sec_tr = self.create_second_level_tree_line(self.join_opcode_and_block_id(self.blocks_values),self.blocks_values)
             par = self.merge_parent_tree(all_opcode,sec_tr)
-            print(par)
+            #print(par)
         
         else:
             print("File not found")
