@@ -19,15 +19,14 @@ class simple_parser:
     tree_depth_check = {'a':{'b':{'Message':['hello','2']},'c':'10','d':['how are you','3'],'e':{'cond':['x',5],'think':['x','20']}}}
     #print(tree_depth_check)
 
-    def check_depth_tree(self,tree_dict):
-        
-        if isinstance(tree_dict,dict) and bool(tree_dict): 
-            for key,value in tree_dict.items():
-               if isinstance(value,str) or isinstance(value,int) or isinstance(value,bool):
-                   print(key,'=>',value)
-               else:
-                   print(self.check_depth_tree(value))
-
+    def get_dict_depth(self,dict_data,depth=0):
+        if not isinstance(dict_data,dict) or not dict_data:
+            return depth
+        return max(self.get_dict_depth(v,depth+1)  for k,v in dict_data.items())
+    
+    
+    def check_non_nested_block(self,val):
+        return isinstance(val,str) or val(int) or val(float) or val(bool) or val == None  
     
     
     def get_all_targets(self,json_data):
@@ -60,6 +59,46 @@ class simple_parser:
         retr_block = self.get_any_block_by_id(block_values,key)
         return {k2:v2 for v in retr_block  for k2,v2 in v.items() if isinstance(v,dict) and bool(v) and k2 not in self.ommited_block_keys_parent}
 
+    def build_line_display_tree(self,blocks_values,all_opcode):
+        if isinstance(blocks_values,list)  and len(blocks_values) > 0:
+            print(f'|---{all_opcode[0]}')
+            for each_block in blocks_values:
+               if isinstance(each_block,dict) and self.get_dict_depth(each_block) > 1:
+                     for v in each_block.values():
+                          print(f'|')
+                          print(f'  |---{v["opcode"] if v["parent"] != None else f""}')
+                          if  isinstance(v,dict) and self.get_dict_depth(v) > 1:
+                              for k2,v2 in v.items(): 
+                                  if isinstance(v2,dict) or isinstance(v2,list):
+                                      self.build_line_display_tree(v2,all_opcode)
+                                  else:
+                                      print(f'    |---{k2}')
+                                      print(f'      |---{v2}' if isinstance(v2,str) or isinstance(v2,int) or isinstance(v2,float) or isinstance(v2,bool) or v2 == None  else f'' )
+
+    def build_tab_display_tree(self,blocks_values,all_opcode):
+         if isinstance(blocks_values,list)  and len(blocks_values) > 0:
+            print(f'{all_opcode[0]}')
+            for each_block in blocks_values:
+               if isinstance(each_block,dict) and self.get_dict_depth(each_block) > 1:
+                     for v in each_block.values():
+                          print(f'')
+                          print(f'  {v["opcode"] if v["parent"] != None else f""}')
+                          if  isinstance(v,dict) and self.get_dict_depth(v) > 1:
+                              for k2,v2 in v.items(): 
+                                  if isinstance(v2,dict) or isinstance(v2,list):
+                                      self.build_line_display_tree(v2,all_opcode)
+                                  else:
+                                      print(f'      {k2}')
+                                      print(f'          {v2}' if isinstance(v2,str) or isinstance(v2,int) or isinstance(v2,float) or isinstance(v2,bool) or v2 == None  else f'' )
+
+
+
+
+               
+                                                            
+
+    
+        
     def get_all_block_keys(self,blocks_values):
         return [v.keys() for v in blocks_values if isinstance(v,dict) and bool(v)]
     
@@ -98,6 +137,17 @@ class simple_parser:
                         print(f'  |---{k}')
                         print(f'    |---{self.get_block_without_opcode(blocks_values,v)}')
                 
+    def create_tree_with_lisp(self,opcode_id_list,blocks_values,parent):
+        if isinstance(opcode_id_list,list) and len(opcode_id_list):
+            print(f'{parent}')
+            for each_opcode in opcode_id_list[1:]:
+                if isinstance(each_opcode,dict) and bool(each_opcode):
+                    
+                    for k,v in each_opcode.items():
+                        print(f'    {k}')
+                        print(f'        {self.get_block_without_opcode(blocks_values,v)}')
+
+
     def get_all_block_values(self,block_id_list,blocks_values):
         return [self.get_block_without_opcode(blocks_values,block) for block in block_id_list[1:] if isinstance(block_id_list,list) and len(block_id_list) > 0]
 
@@ -123,11 +173,14 @@ class simple_parser:
             self.blocks_values = self.get_all_blocks_values(self.all_targets_value)
             
             all_opcode = self.return_all_opcode(self.blocks_values)
-            tr_line = self.create_tree_with_lines(self.join_opcode_and_block_id(self.blocks_values),self.blocks_values,all_opcode[0])
-            print(tr_line)
-            sec_tr = self.create_second_level_tree_line(self.join_opcode_and_block_id(self.blocks_values),self.blocks_values)
-            par = self.merge_parent_tree(all_opcode,sec_tr)
-            #print(par)
+            #tr_line = self.create_tree_with_lines(self.join_opcode_and_block_id(self.blocks_values),self.blocks_values,all_opcode[0])
+            #print(tr_line)
+            #sec_tr = self.create_second_level_tree_line(self.join_opcode_and_block_id(self.blocks_values),self.blocks_values)
+            #tr_lisp = self.create_tree_with_lisp(self.join_opcode_and_block_id(self.blocks_values),self.blocks_values,all_opcode[0])
+            #ln_disp = self.build_line_display_tree(self.blocks_values,all_opcode)
+            tab_disp = self.build_tab_display_tree(self.blocks_values,all_opcode)
+            #par = self.merge_parent_tree(all_opcode,sec_tr)
+            print(tab_disp)
         
         else:
             print("File not found")
