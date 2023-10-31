@@ -1,0 +1,27 @@
+def draw_tree_current_next(self,blocks_values,all_opcode):
+        print(f'sprite')
+        print('|')
+        print(f'+---+{all_opcode[0]}')
+        if isinstance(blocks_values,list) and len(blocks_values) > 0:
+            for value in blocks_values:
+                if isinstance(value,dict)  and bool(value):
+                    for k,v in value.items():
+                        for k2,v2 in v.items():
+                            if isinstance(v2,dict) or isinstance(v2,list):
+                                self.draw_tree_current_next(v2,all_opcode)
+                            else:
+                                paren = self.get_opcode_from_id(blocks_values,v["parent"])
+                                next_key = self.get_opcode_from_id(blocks_values,v["next"]) 
+                                next_key_block = self.get_block_byid(blocks_values,v["next"])
+                                print(next_key_block)
+                                print(f'    |')
+                                print(f'    +---+{paren if paren != None or paren != "" else ""}')
+                                print(f'        |')
+                                print(f'        +---+{v["opcode"]}' if v["parent"] != None else f"")
+                                print(f'            |')
+                                #print(f'        +---+{self.get_opcode_from_id(blocks_values,v["next"])}' if v["parent"] != None else f"")
+                                print(f'                +---+{next_key if next_key != None or next_key != "" else ""}')
+                                print(f'                    |')
+                                print(f'                    +---+{k2}')
+                                print(f'                        |')
+                                print(f'                        +---+{v2}' if isinstance(v2,str) or isinstance(v2,int) or isinstance(v2,float) or isinstance(v2,bool) or v2 == None  else f'')
