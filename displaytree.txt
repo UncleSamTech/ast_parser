@@ -1,0 +1,15 @@
+def build_line_display_tree(self,blocks_values,all_opcode):
+        if isinstance(blocks_values,list)  and len(blocks_values) > 0:
+            print(f'|---{all_opcode[0]}')
+            for each_block in blocks_values:
+               if isinstance(each_block,dict) and self.get_dict_depth(each_block) > 1:
+                     for k,v in each_block.items():
+                          
+                          print(f'  |---{v["opcode"]}' if v["parent"] != None else f"")
+                          if  isinstance(v,dict) and self.get_dict_depth(v) > 1:
+                              for k2,v2 in v.items(): 
+                                  if isinstance(v2,dict) or isinstance(v2,list):
+                                      self.build_line_display_tree(v2,all_opcode)
+                                  else:
+                                      print(f'    |---{k2}')
+                                      print(f'      |---{v2}' if isinstance(v2,str) or isinstance(v2,int) or isinstance(v2,float) or isinstance(v2,bool) or v2 == None  else f'' )
