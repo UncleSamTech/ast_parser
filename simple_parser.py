@@ -225,44 +225,47 @@ class simple_parser:
     def create_quick_tree(self,blocks_values,all_opcode):
         current_opcode = None
         main_parent_opcode = all_opcode[0]
-        #main_parent_id  = self.join_opcode_and_block_id(blocks_values)[0][main_parent_opcode]
         print(f'sprite')
         print('|')
         print(f'+---+{main_parent_opcode}')
+        
         if isinstance(blocks_values,list) and len(blocks_values) > 0:
             for each_block in blocks_values:  
+                
                 if isinstance(each_block,dict) and bool(each_block):
                     for k,v in each_block.items():
                         
                         current_opcode = self.get_opcode_from_id(blocks_values,k) 
                         parent_opcode = self.get_opcode_from_id(blocks_values,v['parent']) 
-                        next_opcode = self.get_opcode_from_id(blocks_values,v['next']) if parent_opcode != None else ''
-                        current_ids = self.get_id_from_opcode(blocks_values,self.get_opcode_from_id(blocks_values,v['next']) if parent_opcode != None else '')
                         
                         if  current_opcode == main_parent_opcode:
                             continue
                         v1 =  {k2:v2 for k2,v2 in v["inputs"].items() if isinstance(v["inputs"],dict)}
                         
-                        print(f'    |')
+                        
                         if self.get_parent_current_next_opcode_by_id(blocks_values,k) != None:
-                            print(f'    +---+{current_opcode}')
+                            if self.get_next_from_id(blocks_values,v["next"]) != None and self.get_next_from_id(blocks_values,v["next"]) != "":
+                                print(f'    |')
+                                print(f'    +---+{current_opcode}')
+                                print(f'        |')
+                                
+                                
                         elif self.get_parent_current(blocks_values,k) != None:
+                            
                             print(f'        |')
-                            print(f'        +---+{self.get_opcode_from_id(blocks_values,v["parent"])}')
+                            print(f'    +---+{parent_opcode if self.get_next_from_id(blocks_values,v["next"]) == None or self.get_next_from_id(blocks_values,v["next"]) == "" else ""}')
+                            
                             print(f'            |')
                             print(f'            +---+{current_opcode}')
-                            print(f'                |')
-                            
+                           
                         for k3,v3 in v1.items():
                             print(f'                +---+{k3}')
                             print(f'                    |')
-                            
-                            if not isinstance(v3,dict) or not isinstance(v3,list):
+                            if not isinstance(v3,dict) or not isinstance(v3,list) and isinstance(v3[1][1],str):
                                 print(f'                    +---+{v3[1][1]}')
-                                   
-                                   
-                            else:
-                                self.create_quick_tree(v3,all_opcode)
+                            if not isinstance(v3,dict) and not isinstance(v3[1],list) and isinstance(v3[1],str):
+                                print(f'                    +---+{v3[1]}')
+                            
 
  
 
@@ -276,8 +279,7 @@ class simple_parser:
         self.blocks_values = self.get_all_blocks_values(self.all_targets_value)
             
         all_opcode = self.return_all_opcode(self.blocks_values)
-        #par_curr = self.get_parent_current(self.blocks_values,',r([,#`OV3[DwDfw/x./')
-        #print(par_curr)
+        
         qt = self.create_quick_tree(self.blocks_values,all_opcode)
         print(qt)
           
