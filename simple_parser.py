@@ -238,26 +238,65 @@ class simple_parser:
                         current_opcode = self.get_opcode_from_id(blocks_values,k) 
                         parent_opcode = self.get_opcode_from_id(blocks_values,v['parent']) 
                         
-                        if  current_opcode == main_parent_opcode:
-                            continue
                         v1 =  {k2:v2 for k2,v2 in v["inputs"].items() if isinstance(v["inputs"],dict)}
                         
-                        
+                        if v["next"] == None:
+                            continue
+                        print(f'    |')
+                        print(f'    +---+{self.get_opcode_from_id(blocks_values,v["next"])}')
+
+                        val  = self.get_block_from_id(blocks_values,v["next"])
+                        if val != None and val["inputs"] != None:
+                            for k3,v3 in val["inputs"].items() if isinstance(val["inputs"],dict) else []:
+                                print(f'        |')
+                                if not isinstance(v3,dict) and not isinstance(v3[1],list) and isinstance(v3[1],str):
+                                    print(f'        |')
+                                    print(f'        +---+{self.get_opcode_from_id(blocks_values,v3[1])}')
+                                    print(f'            |')
+                                    if self.get_block_from_id(blocks_values,v3[1]) != None:
+                                        val = self.get_block_from_id(blocks_values,v3[1])
+                                        if val != None and val["inputs"] != None and val["inputs"] != {} and isinstance(val["inputs"],dict):
+                                            for k4,v4 in val["inputs"].items():
+                                                if not isinstance(v4,dict) and not isinstance(v4[1],list) and isinstance(v4[1],str):
+                                                    print(f'        |')
+                                                    print(f'        +---+{self.get_opcode_from_id(blocks_values,v4[1])}')
+                                                if not isinstance(v4,dict) or not isinstance(v4,list) and isinstance(v4[1][1],str):
+                                                    print(f'            |')
+                                                    print(f'            +---+{v4[1][1]}')
+                                
+                            
+                                        
+                                if not isinstance(v3,dict) or not isinstance(v3,list) and isinstance(v3[1][1],str):
+                                    print(f'            |')
+                                    print(f'            +---+{v3[1][1]}')
+                                
+                            
+                            
+                            
+                            
+                            
+                            '''
+                            print(f'        +---+{k3}')
+                            print(f'            |')
+                            
+                            print(f'            +---+{v2}')
+                        '''
+                        '''
                         if self.get_parent_current_next_opcode_by_id(blocks_values,k) != None:
                             if self.get_next_from_id(blocks_values,v["next"]) != None and self.get_next_from_id(blocks_values,v["next"]) != "":
                                 print(f'    |')
                                 print(f'    +---+{current_opcode}')
                                 print(f'        |')
-                                
+                            
                                 
                         elif self.get_parent_current(blocks_values,k) != None:
                             
-                            print(f'        |')
-                            print(f'    +---+{parent_opcode if self.get_next_from_id(blocks_values,v["next"]) == None or self.get_next_from_id(blocks_values,v["next"]) == "" else ""}')
                             
+                            print(f'    +---+{parent_opcode if self.get_next_from_id(blocks_values,v["next"]) == None or self.get_next_from_id(blocks_values,v["next"]) == ""  else ""}')
                             print(f'            |')
-                            print(f'            +---+{current_opcode}')
-                           
+                            print(f'            +---+{current_opcode} ')
+                        '''   
+                        '''
                         for k3,v3 in v1.items():
                             print(f'                +---+{k3}')
                             print(f'                    |')
@@ -265,7 +304,7 @@ class simple_parser:
                                 print(f'                    +---+{v3[1][1]}')
                             if not isinstance(v3,dict) and not isinstance(v3[1],list) and isinstance(v3[1],str):
                                 print(f'                    +---+{v3[1]}')
-                            
+                            '''
 
  
 
@@ -275,9 +314,11 @@ class simple_parser:
     def read_files(self, parsed_file):
         self.parsed_value = self.sb3class.unpack_sb3(parsed_file)
         self.blocs_json = json.loads(self.parsed_value)
+        
         self.all_targets_value = self.get_all_targets(self.blocs_json)
+       
         self.blocks_values = self.get_all_blocks_values(self.all_targets_value)
-            
+        
         all_opcode = self.return_all_opcode(self.blocks_values)
         
         qt = self.create_quick_tree(self.blocks_values,all_opcode)
