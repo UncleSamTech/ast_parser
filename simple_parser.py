@@ -2,6 +2,8 @@ import os
 import json
 from sb3unzipper import sb3unzipper
 import collections
+from BlockParams import BlockParams
+from BlocksClass import BlocksClass
 
 class simple_parser:
 
@@ -18,6 +20,11 @@ class simple_parser:
         self.sb3class = sb3unzipper()
         self.opcode_parent_next = {}
         self.quick_opcpode_tree = {}
+        self.parsed_tree_data = {}
+        
+        self.block_class_params = BlockParams()
+        self.block_inp_resp_saved = {}
+        self.blocks_tree = []
 
     ommited_block_keys_parent = {"opcode"}
 
@@ -165,9 +172,7 @@ class simple_parser:
                                 #print(f'                |')
                                 #print(f'                +---+{v2}' if isinstance(v2,str) or isinstance(v2,int) or isinstance(v2,float) or isinstance(v2,bool) or v2 == None  else f'')
 
-
-    def get_needed_opcode_values(self,block_values):
-        pass         
+        
 
     def assign_val_to_sec_lev_tree(self,opcode_list,all_block_values):
         new_dict = {}
@@ -205,6 +210,7 @@ class simple_parser:
         if isinstance(block_values,list) and len(block_values) > 0:
             for each_block in block_values:
                 if isinstance(each_block,dict) and bool(each_block) and block_id in each_block.keys():
+                    
                     return each_block[block_id]
     
     def get_blockopcode_parent_opcode_next_opcode(self,blocks_values,block_id):
@@ -222,8 +228,56 @@ class simple_parser:
                             all_empty_next_id.append(k)
         return all_empty_next_id
 
+    def dissect_input(self,blocks_values,input_block):
+        if input_block == None or input_block == {}:
+            return None
+        
+        for v in input_block:
+            print(v)
+            if isinstance(v,dict):
+                self.dissect_input(blocks_values,v)   
+            else:
+                if not isinstance(input_block[v][1],list) and isinstance(input_block[v][1],str):
+                    print(f'            |')
+                    print(f'            +---+{self.get_opcode_from_id(blocks_values,input_block[v][1])}')
+                    if self.get_block_from_id(blocks_values,input_block[v][1]) != None and self.get_block_from_id(blocks_values,input_block[v][1])["inputs"] != None:
+                        self.dissect_input(blocks_values,self.get_block_from_id(blocks_values,input_block[v][1])["inputs"])
+                    else:
+                        print(f'            |')
+                        print(f'            +---+{self.get_opcode_from_id(blocks_values,input_block[v][1])}')
+                        print(f'                |')
+                        print(f'                +---+{self.get_next_from_id(blocks_values,input_block[v][1])}')
+                if isinstance(input_block[v],list) and len(input_block[v]) > 0:
+                    print(f'                |')
+                    print(f'                +---+{input_block[v][1][1]}')
+    
+    def diss_inp_block(self,blocks_values,input_block):
+        if input_block == None or input_block == {}:
+            return None
+        for v in input_block:
+            if isinstance(v,dict):
+                self.dissect_input(blocks_values,v)  
+            else:
+                if not isinstance(input_block[v][1],list) and isinstance(input_block[v][1],str):
+                    opcode = self.get_opcode_from_id(blocks_values,input_block[v][1])
+        
+                    self.block_class_tree.set_opcode(opcode)
+                    self.block_class_params.set_params_key(v)
+                    if self.get_block_from_id(blocks_values,input_block[v][1]) != None and self.get_block_from_id(blocks_values,input_block[v][1])["inputs"] != None:
+                        self.dissect_input(blocks_values,self.get_block_from_id(blocks_values,input_block[v][1])["inputs"])
+                    else:
+                        self.block_class_params.set_params_key(v)
+                        self.block_class_tree.set_opcode(opcode)
+                if isinstance(input_block[v],list) and len(input_block[v]) > 0:
+                    params_val = input_block[v][1][1]
+                    self.block_class_params.set_params_key(v)
+                    self.block_class_params.set_params_value(params_val)
+                self.block_class_tree.set_block_params = self.block_class_params
+        return self.block_class_params        
+
+        
+
     def create_quick_tree(self,blocks_values,all_opcode):
-        current_opcode = None
         main_parent_opcode = all_opcode[0]
         print(f'sprite')
         print('|')
@@ -235,81 +289,34 @@ class simple_parser:
                 if isinstance(each_block,dict) and bool(each_block):
                     for k,v in each_block.items():
                         
-                        current_opcode = self.get_opcode_from_id(blocks_values,k) 
-                        parent_opcode = self.get_opcode_from_id(blocks_values,v['parent']) 
-                        
-                        v1 =  {k2:v2 for k2,v2 in v["inputs"].items() if isinstance(v["inputs"],dict)}
-                        
                         if v["next"] == None:
                             continue
+
                         print(f'    |')
                         print(f'    +---+{self.get_opcode_from_id(blocks_values,v["next"])}')
 
                         val  = self.get_block_from_id(blocks_values,v["next"])
                         if val != None and val["inputs"] != None:
-                            for k3,v3 in val["inputs"].items() if isinstance(val["inputs"],dict) else []:
-                                print(f'        |')
-                                if not isinstance(v3,dict) and not isinstance(v3[1],list) and isinstance(v3[1],str):
-                                    print(f'        |')
-                                    print(f'        +---+{self.get_opcode_from_id(blocks_values,v3[1])}')
-                                    print(f'            |')
-                                    if self.get_block_from_id(blocks_values,v3[1]) != None:
-                                        val = self.get_block_from_id(blocks_values,v3[1])
-                                        if val != None and val["inputs"] != None and val["inputs"] != {} and isinstance(val["inputs"],dict):
-                                            for k4,v4 in val["inputs"].items():
-                                                if not isinstance(v4,dict) and not isinstance(v4[1],list) and isinstance(v4[1],str):
-                                                    print(f'        |')
-                                                    print(f'        +---+{self.get_opcode_from_id(blocks_values,v4[1])}')
-                                                if not isinstance(v4,dict) or not isinstance(v4,list) and isinstance(v4[1][1],str):
-                                                    print(f'            |')
-                                                    print(f'            +---+{v4[1][1]}')
-                                
-                            
-                                        
-                                if not isinstance(v3,dict) or not isinstance(v3,list) and isinstance(v3[1][1],str):
-                                    print(f'            |')
-                                    print(f'            +---+{v3[1][1]}')
-                                
-                            
-                            
-                            
-                            
-                            
-                            '''
-                            print(f'        +---+{k3}')
-                            print(f'            |')
-                            
-                            print(f'            +---+{v2}')
-                        '''
-                        '''
-                        if self.get_parent_current_next_opcode_by_id(blocks_values,k) != None:
-                            if self.get_next_from_id(blocks_values,v["next"]) != None and self.get_next_from_id(blocks_values,v["next"]) != "":
-                                print(f'    |')
-                                print(f'    +---+{current_opcode}')
-                                print(f'        |')
-                            
-                                
-                        elif self.get_parent_current(blocks_values,k) != None:
-                            
-                            
-                            print(f'    +---+{parent_opcode if self.get_next_from_id(blocks_values,v["next"]) == None or self.get_next_from_id(blocks_values,v["next"]) == ""  else ""}')
-                            print(f'            |')
-                            print(f'            +---+{current_opcode} ')
-                        '''   
-                        '''
-                        for k3,v3 in v1.items():
-                            print(f'                +---+{k3}')
-                            print(f'                    |')
-                            if not isinstance(v3,dict) or not isinstance(v3,list) and isinstance(v3[1][1],str):
-                                print(f'                    +---+{v3[1][1]}')
-                            if not isinstance(v3,dict) and not isinstance(v3[1],list) and isinstance(v3[1],str):
-                                print(f'                    +---+{v3[1]}')
-                            '''
-
- 
+                            self.dissect_input(blocks_values,val["inputs"])
 
 
+   
+    def tree_memory(self,all_opcode,next_values): 
+        main_parent_opcode = all_opcode[0]
+        
+        self.parsed_tree_data = {main_parent_opcode:next_values}
+        
+        return self.parsed_tree_data
     
+    def create_next_values_tree(self,blocks_values,input):
+       return {self.get_opcode_from_id(blocks_values,v["next"]):input for each_block in blocks_values for k,v in each_block.items() if isinstance(each_block,dict) and bool(each_block) and isinstance(v,dict) and bool(v) and 'next' in v.keys() and v['next'] != None}
+
+    def create_input_tree(self,blocks_values):
+        return {v["opcode"]:v["inputs"] for each_block in blocks_values if isinstance(each_block,dict) and bool(each_block) for k,v in each_block.items() if isinstance(v,dict) and bool(v) and v['inputs'] != None}
+        
+    def walk_input_tree(self,input_block,blocks):
+        return {k2:v2[1][1] if not isinstance(v2[1],str) else {self.get_opcode_from_id(blocks,v2[1])} for k,v in input_block.items() for k2,v2 in v.items() if isinstance(input_block,dict) and bool(input_block) and isinstance(v,dict) and bool(v) and isinstance(v2,list) and len(v2) > 0 or isinstance(v2[1],list) or len(v2[1]) > 0 or isinstance(v2[1][1],str)}
+
     
     def read_files(self, parsed_file):
         self.parsed_value = self.sb3class.unpack_sb3(parsed_file)
@@ -319,10 +326,15 @@ class simple_parser:
        
         self.blocks_values = self.get_all_blocks_values(self.all_targets_value)
         
-        all_opcode = self.return_all_opcode(self.blocks_values)
         
-        qt = self.create_quick_tree(self.blocks_values,all_opcode)
-        print(qt)
+        
+        all_opcode = self.return_all_opcode(self.blocks_values)
+        tr_mem = self.tree_memory(all_opcode,self.create_next_values_tree(self.blocks_values,self.walk_input_tree(self.create_input_tree(self.blocks_values),self.blocks_values)))
+        #print(self.create_input_tree(self.blocks_values))
+        print(self.walk_input_tree(self.create_input_tree(self.blocks_values),self.blocks_values))
+        #print(tr_mem)
+        #qt = self.create_quick_tree(self.blocks_values,all_opcode)
+        #print(qt)
           
     
 
