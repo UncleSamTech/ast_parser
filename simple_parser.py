@@ -24,6 +24,7 @@ class simple_parser:
         
         self.block_class_params = BlockParams()
         self.block_inp_resp_saved = {}
+        self.input_block = {}   
         self.blocks_tree = []
 
     ommited_block_keys_parent = {"opcode"}
@@ -308,15 +309,55 @@ class simple_parser:
         
         return self.parsed_tree_data
     
-    def create_next_values_tree(self,blocks_values,input):
-       return {self.get_opcode_from_id(blocks_values,v["next"]):input for each_block in blocks_values for k,v in each_block.items() if isinstance(each_block,dict) and bool(each_block) and isinstance(v,dict) and bool(v) and 'next' in v.keys() and v['next'] != None}
+    def get_inp_by_opcode(self,blocks_values,id):
+        if id == None or id == '':
+           return {}
+        inputs_block_by_id = self.get_block_from_id(blocks_values,id)
+        if inputs_block_by_id == None or inputs_block_by_id == {} or inputs_block_by_id["inputs"] == None:
+            return {}
+        if isinstance(inputs_block_by_id["inputs"],dict) and bool(inputs_block_by_id["inputs"]):
+           for k,v in inputs_block_by_id["inputs"].items():
+                print(v)
+                if isinstance(v,list) and len(v) > 0:
+                    for val in v:
+                        if isinstance(val,str):
+                            child_opcode = self.get_opcode_from_id(blocks_values,val)
+                            if v[1] == None or v[1] == '':
+                                self.input_block = {k:{child_opcode}}
+                            else:
+                                self.input_block = {k:{child_opcode:self.get_inp_by_opcode(blocks_values,v[1])}}
+                        elif isinstance(val,list) and isinstance(val[1],str):
+                            self.input_block = {k:[val[1]]}
+            
+        return self.input_block
+    
+    def create_next_values_tree(self,blocks_values):
+       
+       
+       return {self.get_opcode_from_id(blocks_values,v["next"]):self.get_inp_by_opcode(blocks_values,v["next"]) for each_block in blocks_values for k,v in each_block.items() if isinstance(each_block,dict) and bool(each_block) and isinstance(v,dict) and bool(v) and 'next' in v.keys() and v['next'] != None}
 
     def create_input_tree(self,blocks_values):
         return {v["opcode"]:v["inputs"] for each_block in blocks_values if isinstance(each_block,dict) and bool(each_block) for k,v in each_block.items() if isinstance(v,dict) and bool(v) and v['inputs'] != None}
         
-    def walk_input_tree(self,input_block,blocks):
-        return {k2:v2[1][1] if not isinstance(v2[1],str) else {self.get_opcode_from_id(blocks,v2[1])} for k,v in input_block.items() for k2,v2 in v.items() if isinstance(input_block,dict) and bool(input_block) and isinstance(v,dict) and bool(v) and isinstance(v2,list) and len(v2) > 0 or isinstance(v2[1],list) or len(v2[1]) > 0 or isinstance(v2[1][1],str)}
 
+    def flatten_opcode_tree(self,blocks,opcode_key):
+        val = self.get_block_from_id(blocks,opcode_key)
+
+        if val["inputs"] == None or val["inputs"] == {}:
+            return self.get_opcode_from_id(blocks,opcode_key)
+        else:
+            return {self.get_opcode_from_id(blocks,opcode_key):""}
+
+    def walk_input_tree(self,input_block,blocks):
+        return {k2:v2[1][1] if not isinstance(v2[1],str) else {self.get_opcode_from_id(blocks,v2[1])} for k,v in input_block.items() if isinstance(input_block,dict) and bool(input_block) for k2,v2 in v.items()   if isinstance(v,dict) and bool(v) and isinstance(v2,list) and len(v2) > 0 or isinstance(v2[1],list) or len(v2[1]) > 0 or isinstance(v2[1][1],str)}
+
+    
+    
+                        
+                   
+                  
+       
+    
     
     def read_files(self, parsed_file):
         self.parsed_value = self.sb3class.unpack_sb3(parsed_file)
@@ -329,14 +370,16 @@ class simple_parser:
         
         
         all_opcode = self.return_all_opcode(self.blocks_values)
-        tr_mem = self.tree_memory(all_opcode,self.create_next_values_tree(self.blocks_values,self.walk_input_tree(self.create_input_tree(self.blocks_values),self.blocks_values)))
+        tr_mem = self.tree_memory(all_opcode,self.create_next_values_tree(self.blocks_values))
         #print(self.create_input_tree(self.blocks_values))
-        print(self.walk_input_tree(self.create_input_tree(self.blocks_values),self.blocks_values))
-        #print(tr_mem)
+        #print(self.walk_input_tree(self.create_input_tree(self.blocks_values),self.blocks_values))
+        print(tr_mem)
+        
+        print(self.get_inp_by_opcode(self.blocks_values,',r([,#`OV3[DwDfw/x./'))
         #qt = self.create_quick_tree(self.blocks_values,all_opcode)
         #print(qt)
           
     
 
 simple_parser_obj = simple_parser()
-simple_parser_obj.read_files("files/test.sb3")
+simple_parser_obj.read_files("files/samples.sb3")
