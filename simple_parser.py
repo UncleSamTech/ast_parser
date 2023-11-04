@@ -321,11 +321,11 @@ class simple_parser:
                 if isinstance(v,list) and len(v) > 0:
                     for val in v:
                         if isinstance(val,str):
-                            child_opcode = self.get_opcode_from_id(blocks_values,val)
-                            if v[1] == None or v[1] == '':
-                                self.input_block = {k:{child_opcode}}
+                            if val == None or val == '':
+                                self.input_block = {k:{}}
                             else:
-                                self.input_block = {k:{child_opcode:self.get_inp_by_opcode(blocks_values,v[1])}}
+                                child_opcode = self.get_opcode_from_id(blocks_values,val)
+                                self.input_block = {k:{child_opcode:self.get_inp_by_opcode(blocks_values,val)}}
                         elif isinstance(val,list) and isinstance(val[1],str):
                             self.input_block = {k:[val[1]]}
             
@@ -375,11 +375,11 @@ class simple_parser:
         #print(self.walk_input_tree(self.create_input_tree(self.blocks_values),self.blocks_values))
         print(tr_mem)
         
-        print(self.get_inp_by_opcode(self.blocks_values,',r([,#`OV3[DwDfw/x./'))
+        #print(self.get_inp_by_opcode(self.blocks_values,',r([,#`OV3[DwDfw/x./'))
         #qt = self.create_quick_tree(self.blocks_values,all_opcode)
         #print(qt)
           
     
 
 simple_parser_obj = simple_parser()
-simple_parser_obj.read_files("files/samples.sb3")
+simple_parser_obj.read_files("files/test.sb3")
