@@ -26,6 +26,7 @@ class simple_parser:
         self.block_inp_resp_saved = {}
         self.input_block = {}   
         self.blocks_tree = []
+        
 
     ommited_block_keys_parent = {"opcode"}
 
@@ -307,7 +308,7 @@ class simple_parser:
         
         self.parsed_tree_data = {main_parent_opcode:next_values}
         
-        return self.parsed_tree_data
+        return json.dumps(self.parsed_tree_data,indent=4)
     
     def get_inp_by_opcode(self,blocks_values,id):
         if id == None or id == '':
@@ -317,17 +318,21 @@ class simple_parser:
             return {}
         if isinstance(inputs_block_by_id["inputs"],dict) and bool(inputs_block_by_id["inputs"]):
            for k,v in inputs_block_by_id["inputs"].items():
-                print(v)
                 if isinstance(v,list) and len(v) > 0:
                     for val in v:
                         if isinstance(val,str):
                             if val == None or val == '':
-                                self.input_block = {k:{}}
+                                self.input_block = {k:val}
                             else:
                                 child_opcode = self.get_opcode_from_id(blocks_values,val)
                                 self.input_block = {k:{child_opcode:self.get_inp_by_opcode(blocks_values,val)}}
-                        elif isinstance(val,list) and isinstance(val[1],str):
-                            self.input_block = {k:[val[1]]}
+                                
+                        elif isinstance(val,list):
+                            for i in val:
+                                if isinstance(i,str):
+                                    self.input_block = {k:i}
+                                    
+                            
             
         return self.input_block
     
