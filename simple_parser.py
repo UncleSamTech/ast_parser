@@ -317,20 +317,24 @@ class simple_parser:
         if inputs_block_by_id == None or inputs_block_by_id == {} or inputs_block_by_id["inputs"] == None:
             return {}
         if isinstance(inputs_block_by_id["inputs"],dict) and bool(inputs_block_by_id["inputs"]):
+           #print(inputs_block_by_id["inputs"])
+           out_dict = {}
            for k,v in inputs_block_by_id["inputs"].items():
+                print(f'{k} => {v}')
                 if isinstance(v,list) and len(v) > 0:
-                    for val in v:
-                        if isinstance(val,str):
-                            if val == None or val == '':
-                                self.input_block = {k:val}
-                            else:
-                                child_opcode = self.get_opcode_from_id(blocks_values,val)
-                                self.input_block = {k:{child_opcode:self.get_inp_by_opcode(blocks_values,val)}}
-                                
-                        elif isinstance(val,list):
-                            for i in val:
-                                if isinstance(i,str):
-                                    self.input_block = {k:i}
+                    if isinstance(v[1],str):
+                        if v[1] == None or v[1] == '':
+                            out_dict = {k:v[1]}
+                        else:
+                            child_opcode = self.get_opcode_from_id(blocks_values,v[1])
+                            out_dict = {k:{child_opcode:self.get_inp_by_opcode(blocks_values,v[1])}}
+                    
+                    elif isinstance(v[1],list) and len(v[1]) > 0 and isinstance(v[1][1],str):
+                        #print(v[1][1])
+                        out_dict = {k:v[1][1]}
+                            #for i in val:
+                                #if isinstance(i,str):
+           self.input_block = out_dict                        
                                     
                             
             
