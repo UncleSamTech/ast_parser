@@ -3,6 +3,7 @@ import json
 from sb3unzipper import sb3unzipper
 import collections
 from BlockParams import BlockParams
+import uuid
 from BlocksClass import BlocksClass
 
 class simple_parser:
@@ -25,6 +26,8 @@ class simple_parser:
         self.block_class_params = BlockParams()
         self.block_inp_resp_saved = {}
         self.input_block = {}   
+        self.tree1 = None
+        self.tree2 = {}
         self.blocks_tree = []
         
 
@@ -305,10 +308,11 @@ class simple_parser:
    
     def tree_memory(self,all_opcode,next_values): 
         main_parent_opcode = all_opcode[0]
+        v = next_values.copy()
+        self.parsed_tree_data = {main_parent_opcode:v}
+        p = self.parsed_tree_data.copy()
         
-        self.parsed_tree_data = {main_parent_opcode:next_values}
-        
-        return json.dumps(self.parsed_tree_data,indent=4)
+        return json.dumps(p,indent=4)
     
     def get_inp_by_opcode(self,blocks_values,id):
         if id == None or id == '':
@@ -316,26 +320,20 @@ class simple_parser:
         inputs_block_by_id = self.get_block_from_id(blocks_values,id)
         if inputs_block_by_id == None or inputs_block_by_id == {} or inputs_block_by_id["inputs"] == None:
             return {}
-        if isinstance(inputs_block_by_id["inputs"],dict) and bool(inputs_block_by_id["inputs"]):
-           #print(inputs_block_by_id["inputs"])
+        elif isinstance(inputs_block_by_id["inputs"],dict) and bool(inputs_block_by_id["inputs"]):
            for k,v in inputs_block_by_id["inputs"].items():
-                print(f'{k} => {v}')
                 if isinstance(v,list) and len(v) > 0:
-                    if isinstance(v[1],str):
-                        if v[1] == None or v[1] == '':
-                            self.input_block = {k:v[1]}
-                        else:
-                            child_opcode = self.get_opcode_from_id(blocks_values,v[1])
-                            self.input_block = {k:{child_opcode:self.get_inp_by_opcode(blocks_values,v[1])}}
-                    
-                    elif isinstance(v[1],list) and len(v[1]) > 0 and isinstance(v[1][1],str):
-                        #print(v[1][1])
-                        self.input_block = {k:v[1][1]}
-                            #for i in val:
-                                #if isinstance(i,str):
+                    for each_val in v:
+                        if isinstance(each_val,str):
+                            code = self.get_opcode_from_id(blocks_values,each_val)
+                            self.input_block = {k:{code:self.get_inp_by_opcode(blocks_values,each_val)}} if code != None and code != '' else {}
+                        if isinstance(each_val,list) and len(each_val) > 0:
+                            for each_val2 in each_val:
+                                if isinstance(each_val2,str) and each_val2 != None or each_val2 != '':
+                                    self.input_block = {k:each_val2}
                                     
                                     
-                            
+                        
             
         return self.input_block
     
@@ -375,7 +373,7 @@ class simple_parser:
        
         self.blocks_values = self.get_all_blocks_values(self.all_targets_value)
 
-        print(json.dumps(self.blocks_values,indent=4))
+        
         
         
         
