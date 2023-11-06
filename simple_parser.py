@@ -308,11 +308,10 @@ class simple_parser:
    
     def tree_memory(self,all_opcode,next_values): 
         main_parent_opcode = all_opcode[0]
-        v = next_values.copy()
-        self.parsed_tree_data = {main_parent_opcode:v}
-        p = self.parsed_tree_data.copy()
         
-        return json.dumps(p,indent=4)
+        self.parsed_tree_data = {main_parent_opcode:next_values}
+        
+        return json.dumps(self.parsed_tree_data,indent=4)
     
     def get_inp_by_opcode(self,blocks_values,id):
         if id == None or id == '':
@@ -320,7 +319,7 @@ class simple_parser:
         inputs_block_by_id = self.get_block_from_id(blocks_values,id)
         if inputs_block_by_id == None or inputs_block_by_id == {} or inputs_block_by_id["inputs"] == None:
             return {}
-        elif isinstance(inputs_block_by_id["inputs"],dict) and bool(inputs_block_by_id["inputs"]):
+        if isinstance(inputs_block_by_id["inputs"],dict) and bool(inputs_block_by_id["inputs"]):
            for k,v in inputs_block_by_id["inputs"].items():
                 if isinstance(v,list) and len(v) > 0:
                     for each_val in v:
@@ -390,4 +389,4 @@ class simple_parser:
     
 
 simple_parser_obj = simple_parser()
-simple_parser_obj.read_files("files/test.sb3")
+simple_parser_obj.read_files("files/test2.sb3")
