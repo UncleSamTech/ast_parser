@@ -310,8 +310,10 @@ class simple_parser:
         main_parent_opcode = all_opcode[0]
         
         self.parsed_tree_data = {main_parent_opcode:next_values}
+        with open('files/tree.json','w') as f:
+            json.dump(self.parsed_tree_data,f,indent=4)
         
-        return json.dumps(self.parsed_tree_data,indent=4)
+        return self.parsed_tree_data
     
     def get_inp_by_opcode(self,blocks_values,id):
         if id == None or id == '':
@@ -331,9 +333,6 @@ class simple_parser:
                                 if isinstance(each_val2,str) and each_val2 != None or each_val2 != '':
                                     self.input_block = {k:each_val2}
                                     
-                                    
-                        
-            
         return self.input_block
     
     def create_next_values_tree(self,blocks_values):
