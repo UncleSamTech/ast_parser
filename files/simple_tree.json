@@ -1,0 +1,8 @@
+{
+    "event_whenflagclicked": {
+        "looks_sayforsecs": {
+            "MESSAGE": "Hello!",
+            "SECS": "2"
+        }
+    }
+}
