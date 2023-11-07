@@ -55,6 +55,8 @@ class scratch_parser:
                 self.scratch_tree[each_par] = next_values
         else:
             self.scratch_tree[par_opcode] = next_values
+
+            
         return self.scratch_tree  
 
     
@@ -88,8 +90,6 @@ class scratch_parser:
     def create_next_values(self,blocks_values):
         if blocks_values == None or blocks_values == {}:
             return {}
-        
-        
         return {self.get_opcode_from_id(blocks_values,v):self.flatten_input_values(blocks_values,v) for v in self.get_all_next_id(blocks_values)}      
 
     def get_all_next_id(self,blocks_values):
@@ -101,44 +101,29 @@ class scratch_parser:
         self.parsed_value = self.sb3class.unpack_sb3(parsed_file)
         self.blocs_json = json.loads(self.parsed_value)
         
-        #targets values
-        all_targets_values = self.get_all_targets(self.blocs_json)
+        
 
         #block values
         all_blocks_value = self.get_all_blocks_vals(self.blocs_json)
-        #print(json.dumps(all_blocks_value,indent=4))
- 
-        #get any block by id
-        #any_block = self.get_opcode_from_id(all_blocks_value,'dnk`A4G]br9b~C+.#H!q')
-        #print(any_block)
+        
     
         #get all opcodes
         all_opcodes = self.return_all_opcodes(all_blocks_value)
-        
-        #create top tree
-        #top_tree = self.create_top_tree(all_blocks_value,None)
-        #print(top_tree)
+   
 
         #create next values
         next_val = self.create_next_values(all_blocks_value)
         #print(next_val)
 
         top_tree = self.create_top_tree(all_blocks_value,next_val)
+        file_name = os.path.basename(parsed_file).split('/')[-1].split('.sb3')[0]
+
+        with open(f"files/{file_name}_tree.json","w") as tree_file:
+            json.dump(top_tree,tree_file,indent=4)
         print(top_tree)
 
-        #read input values by id
-        #read_input = self.read_input_values_by_id(all_blocks_value,'8J%l~hNqUpt0Lfv1;iR^')
-        #print(read_input)
-
-        #flatten input values
-        #flat_inp = self.flatten_input_values(all_blocks_value,'8J%l~hNqUpt0Lfv1;iR^')
-        #print(flat_inp)
-        
-        #get all next ids
-        #all_next_ids = self.get_all_next_id(all_blocks_value)
-        #print(all_next_ids)
 
 scratch_parser_inst = scratch_parser()
-scratch_parser_inst.read_files("files/test.sb3")
+scratch_parser_inst.read_files("files/test2.sb3")
 
     
