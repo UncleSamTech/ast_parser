@@ -7,11 +7,7 @@
             "STEPS": "10"
         },
         "control_repeat_until": {
-            "CONDITION": {
-                "operator_equals": {
-                    "OPERAND2": "50"
-                }
-            }
+            "STEPS": "10"
         },
         "looks_thinkforsecs": {
             "SECS": "2"

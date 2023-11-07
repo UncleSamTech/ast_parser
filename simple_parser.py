@@ -190,6 +190,13 @@ class simple_parser:
             for each_block in block_values:
                 if isinstance(each_block,dict) and  block_id in each_block.keys():
                     return each_block[block_id]['opcode'] if each_block[block_id]['opcode'] != None else ''
+                
+    def get_opcode_from_id2(self,block_values,block_id):
+        if block_id == None or block_id == '':
+            return ''
+        if isinstance(block_values,dict) and bool(block_values):
+            return block_values['blocks'][block_id]['opcode'] if block_values['blocks'][block_id]['opcode'] != None else ''
+
 
     def get_next_from_id(self,block_values,block_id):
         if isinstance(block_values,list) and len(block_values) > 0:
@@ -212,11 +219,10 @@ class simple_parser:
                     return each_block[block_id]['parent'] if each_block[block_id]['parent'] != None else ''
                 
     def get_block_from_id(self,block_values,block_id):
-        if isinstance(block_values,list) and len(block_values) > 0:
-            for each_block in block_values:
-                if isinstance(each_block,dict) and bool(each_block) and block_id in each_block.keys():
-                    
-                    return each_block[block_id]
+        val = [each_block[block_id] for each_block in block_values if isinstance(each_block,dict) and bool(each_block) and block_id in each_block.keys()][0]
+        print('singleblock',val)
+        return val
+      
     
     def get_blockopcode_parent_opcode_next_opcode(self,blocks_values,block_id):
         block_by_id = self.get_any_block_by_id(blocks_values,block_id)[0]
@@ -315,6 +321,16 @@ class simple_parser:
         
         return self.parsed_tree_data
     
+    def get_blocks_vals_as_dict(self,blocks_values):
+        targ = self.get_all_targets(blocks_values)
+        return {'blocks':each_block['blocks'] for each_block in targ if isinstance(each_block,dict) and 'blocks' in each_block.keys()}
+
+
+    def get_any_block_by_id2(self,blocks_values,key):
+        if key == None or key == '' or blocks_values == None or blocks_values == {} or blocks_values['blocks'] == None or blocks_values['blocks'] == {} or blocks_values['blocks'][key] == None or blocks_values['blocks'][key] == {}:
+            return {}
+        return blocks_values['blocks'][key] 
+    
     def get_inp_by_opcode(self,blocks_values,id):
         if id == None or id == '':
            return {}
@@ -326,7 +342,7 @@ class simple_parser:
                 if isinstance(v,list) and len(v) > 0:
                     for each_val in v:
                         if isinstance(each_val,str):
-                            code = self.get_opcode_from_id(blocks_values,each_val)
+                            code = self.get_opcode_from_id2(blocks_values,each_val)
                             self.input_block = {k:{code:self.get_inp_by_opcode(blocks_values,each_val)}} if code != None and code != '' else {}
                         if isinstance(each_val,list) and len(each_val) > 0:
                             for each_val2 in each_val:
@@ -335,10 +351,34 @@ class simple_parser:
                                     
         return self.input_block
     
+    def get_inp_by_opcode2(self,blocks_values,id):
+       
+        if id == None or id == '':
+           return {}
+        inputs_block_by_id = self.get_any_block_by_id2(blocks_values,id)["inputs"] if self.get_any_block_by_id2(blocks_values,id) != None and self.get_any_block_by_id2(blocks_values,id)["inputs"] != None else {}
+        
+        def get_inp_by_opcode3(blocks_values,id,inp_block):
+
+        #if inputs_block_by_id == None or inputs_block_by_id == {} or inputs_block_by_id["inputs"] == None:
+            #return {}
+            if isinstance(inp_block,dict) and bool(inp_block):
+                for k,v in inputs_block_by_id.items():
+                    if isinstance(v,list) and len(v) == 2 and isinstance(v[1],list) and len(v[1]) == 2 and isinstance(v[1][1],str):
+                        self.input_block = {k:v[1][1]}
+            return self.input_block           
+       
+        return get_inp_by_opcode3(blocks_values,id,inputs_block_by_id)
+    
     def create_next_values_tree(self,blocks_values):
        
        
-       return {self.get_opcode_from_id(blocks_values,v["next"]):self.get_inp_by_opcode(blocks_values,v["next"]) for each_block in blocks_values for k,v in each_block.items() if isinstance(each_block,dict) and bool(each_block) and isinstance(v,dict) and bool(v) and 'next' in v.keys() and v['next'] != None}
+       return {self.get_opcode_from_id2(blocks_values,v["next"]):self.get_inp_by_opcode2(blocks_values,v["next"]) for each_block in blocks_values for k,v in each_block.items() if isinstance(each_block,dict) and bool(each_block) and isinstance(v,dict) and bool(v) and 'next' in v.keys() and v['next'] != None}
+
+    
+    def create_next_values_tree2(self,blocks_values):
+       
+       
+       return {self.get_opcode_from_id2(blocks_values,v2["next"]):self.get_inp_by_opcode2(blocks_values,v2["next"]) for k,v in blocks_values.items() for k2,v2 in v.items() if isinstance(blocks_values,dict) and bool(blocks_values) and isinstance(v,dict) and bool(v) and 'next' in v2.keys() and v2['next'] != None}
 
     def create_input_tree(self,blocks_values):
         return {v["opcode"]:v["inputs"] for each_block in blocks_values if isinstance(each_block,dict) and bool(each_block) for k,v in each_block.items() if isinstance(v,dict) and bool(v) and v['inputs'] != None}
@@ -368,7 +408,10 @@ class simple_parser:
         self.blocs_json = json.loads(self.parsed_value)
         
         self.all_targets_value = self.get_all_targets(self.blocs_json)
-       
+        bl = self.get_blocks_vals_as_dict(self.blocs_json)
+        print(bl)
+        
+        
         self.blocks_values = self.get_all_blocks_values(self.all_targets_value)
 
         
@@ -376,10 +419,12 @@ class simple_parser:
         
         
         all_opcode = self.return_all_opcode(self.blocks_values)
-        tr_mem = self.tree_memory(all_opcode,self.create_next_values_tree(self.blocks_values))
+        tr_mem = self.tree_memory(all_opcode,self.create_next_values_tree2(bl))
         #print(self.create_input_tree(self.blocks_values))
         #print(self.walk_input_tree(self.create_input_tree(self.blocks_values),self.blocks_values))
         print(tr_mem)
+        #co = self.get_inp_by_opcode2(self.blocks_values,'Ml@l~n|$+$jrg9V%IzC{')
+        #print(co)
         
         #print(self.get_inp_by_opcode(self.blocks_values,',r([,#`OV3[DwDfw/x./'))
         #qt = self.create_quick_tree(self.blocks_values,all_opcode)
