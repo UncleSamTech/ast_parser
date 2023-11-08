@@ -10,9 +10,7 @@
         "control_repeat_until": {
             "CONDITION": {
                 "operator_equals": {
-                    "OPERAND1": {
-                        "sensing_answer": {}
-                    },
+                    "OPERAND1": "",
                     "OPERAND2": "50"
                 }
             }

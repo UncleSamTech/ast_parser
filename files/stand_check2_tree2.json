@@ -1,0 +1,29 @@
+{
+    "event_whenflagclicked": {
+        "looks_thinkforsecs": {
+            "SECS": "2",
+            "MESSAGE": "Hmm..."
+        },
+        "motion_pointindirection": {
+            "DIRECTION": "90"
+        },
+        "motion_changexby": {
+            "DX": "10"
+        }
+    }
+}
+
+[
+    "event_whenflagclicked", [
+        ["looks_thinkforsecs", [
+            ["SECS", "2"],
+            ["MESSAGE", "Hmm..."]
+        ]],
+        ["motion_pointindirection", [
+            ["DIRECTION", "90"]
+        ]],
+        ["motion_changexby", []
+            ["DX", "10"]
+        ]
+    ]
+]

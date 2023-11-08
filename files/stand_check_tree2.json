@@ -1,0 +1,14 @@
+{
+    "event_whenflagclicked": {
+        "motion_movesteps": {
+            "STEPS": "10"
+        },
+        "motion_turnright": {
+            "DEGREES": "15"
+        },
+        "looks_sayforsecs": {
+            "SECS": "2",
+            "MESSAGE": "Hello!"
+        }
+    }
+}
